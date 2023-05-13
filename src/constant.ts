@@ -9,6 +9,6 @@ IT IS ALSO RECCOMENDED YOU DO NOT STORE THESE KEYS SERVER SIDE, AND INSTEAD USE 
 */
 
 export const openai_config = new Configuration({
-  apiKey: "sk-" + "",
+  apiKey: "sk-" + "tlXx39KnoSz4uOLC7Zoo" + "T3BlbkFJcO7047M3O7qG7QeTFojm",
   organization: "org-OgDNtml2WVkO1nAGoM6Z2CHl",
 });
