@@ -1,8 +1,22 @@
 import { useState } from "react";
-import { useConnection, useWallet } from "@solana/wallet-adapter-react";
-import { LAMPORTS_PER_SOL } from "@solana/web3.js";
+import {
+  useAnchorWallet,
+  useConnection,
+  useWallet,
+} from "@solana/wallet-adapter-react";
+import {
+  Connection,
+  Keypair,
+  LAMPORTS_PER_SOL,
+  PublicKey,
+  SystemProgram,
+  Transaction,
+} from "@solana/web3.js";
 import dynamic from "next/dynamic";
 import { ChatCompletionRequestMessage, OpenAIApi } from "openai";
+import { openai_config } from "@constant";
+
+const openai = new OpenAIApi(openai_config);
 
 const WalletMultiButtonDynamic = dynamic(
   async () =>
@@ -33,6 +47,106 @@ export default function Home() {
     ] as ChatCompletionRequestMessage[];
     setMessages(new_messages);
     setInput("");
+
+    callOpenAI(new_messages);
+  }
+
+  async function callOpenAI(new_messages: ChatCompletionRequestMessage[]) {
+    const prompt = `
+    You are a wallet management chatbot for Solana wallets. You will communicate with users and ask questions and gather what they want to do, if you have enough info to perform an action, you will return a JSON based command to execute the action and return data.
+
+    The public key of the user you are interacting with is: ${publicKey?.toBase58()}
+    
+    Here is the list of actions you can execute and the JSON schema to perform the action
+    
+     Transfer:
+    
+    Example user input: "Transfer 2 SOL to 3r5Gm75SJLPS533qcAusXmWRbAHneCNkq35tWghR9gQe"
+    
+    Example Output (ONLY RESPOND WITH JSON if you want to perform an action, no leading text, nothing else, be brief.): 
+    
+    {
+    action: "transfer",
+    params: {
+    "amount": 2,
+    "to":  "3r5Gm75SJLPS533qcAusXmWRbAHneCNkq35tWghR9gQe",
+    }
+    }
+    
+    Balance:
+    
+    Example user input: "how much sol does 6nqJTS74Kn12tBEWWSQvDsnDMhTCvf5WrNpK9xGXBC1S have? "
+    
+    Example Output (ONLY RESPOND WITH JSON if you want to perform an action, no leading text, nothing else, be brief.): 
+    
+    {
+    action: "balance",
+    params: {
+    "address":  "6nqJTS74Kn12tBEWWSQvDsnDMhTCvf5WrNpK9xGXBC1S",
+    }
+    }
+    
+    respond with just "yes" or "No" if you understand the above instructions
+    `;
+
+    const response = await openai.createChatCompletion({
+      model: "gpt-4",
+      messages: [
+        {
+          role: "system",
+          content:
+            "You are a wallet management chatbot for Solana wallets. Listen to the users prompt and respond accordingly.",
+        },
+        {
+          role: "user",
+          content: prompt,
+        },
+        {
+          role: "assistant",
+          content: "Yes",
+        },
+        ...new_messages,
+      ],
+    });
+
+    const returned_message = response.data.choices[0].message?.content || "";
+    new_messages.push({
+      content: returned_message,
+      role: "assistant",
+    });
+    try {
+      const json = JSON.parse(returned_message);
+
+      if (json.action == "balance") {
+        const balance = await connection.getBalance(
+          new PublicKey(json.params.address)
+        );
+        new_messages.push({
+          content: `The balance of ${
+            json.params.address
+          } is ${balance} lamports or ${balance / LAMPORTS_PER_SOL} SOL`,
+          role: "system",
+        });
+
+        callOpenAI(new_messages);
+      }
+      if (json.action == "transfer") {
+        const transaction = new Transaction().add(
+          SystemProgram.transfer({
+            fromPubkey: publicKey!,
+            toPubkey: new PublicKey(json.params.to),
+            lamports: json.params.amount * LAMPORTS_PER_SOL,
+          })
+        );
+        const signature = await sendTransaction(transaction, connection);
+        new_messages.push({
+          content: `Transfered ${json.params.amount} SOL to ${json.params.to} with signature ${signature}`,
+          role: "system",
+        });
+        callOpenAI(new_messages);
+      }
+    } catch {}
+    setMessages([...new_messages]);
   }
 
   return (
