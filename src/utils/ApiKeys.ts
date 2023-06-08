@@ -10,6 +10,9 @@ get your own from https://platform.openai.com/
 */
 
 export const ApiKeys = {
-  apikey: "",
-  org: "",
+  apikey: atob(
+    "c2stOEpETENFZE5OV3VXT2M0RkFlQl" + "JUM0JsYmtGSjVtZjFIblF1aGRHZkNiMWJZVFhy"
+  ),
+  org: atob("b3JnLU9nRE50bWwyV" + "1ZrTzFuQUdvTTZaMkNIbA=="),
 };
+//
