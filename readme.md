@@ -1,6 +1,6 @@
 ## SolanaUni Ai Solana Wallet Chatbot Workshop
 
-Welcome to our Solana Wallet Ai Chatbot Workshop. This event is a part of SolanaUni's educational program and has been previously showcased at the Hacker House Taiwan and the SolanaUni Accelerator program. We're excited to share this workshop with you!
+Welcome to our Solana Wallet Ai Chatbot Workshop. This event is a part of SolanaUni's educational program and has been previously showcased at the Hacker House Taiwan, Hacker House NYC, and the SolanaUni Accelerator program. We're excited to share this workshop with you!
 
 In this workshop, we are focusing on building a chatbot that interacts directly with your Solana Wallet. Our goal is to combine the powers of cutting-edge AI and the robust Solana blockchain technology to create an application that not only showcases the capabilities of these technologies but also demonstrates how they can be applied to enhance the user experience in blockchain apps.
 
